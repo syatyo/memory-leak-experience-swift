@@ -22,7 +22,12 @@ class CalorieCalculator {
     
     func calorie(mets: Float) -> (Float) -> Float {
         return {
-            (hour:Float)->Float in return (mets*hour*self.weight)
+            /*
+             unowned(非所有参照)は参照カウントを増やさないので、クロージャ生成時のキャプチャでretainカウントが増えず、循環参照は起きない
+             ただし、unownedは実行時にselfが解放されていれば(=nilであれば)実行時エラーになる。
+             文法としてself?.weightのような呼び出しはできない。
+             */
+            [unowned self](hour:Float)->Float in return (mets*hour*self.weight)
         }
     }
 }
@@ -31,12 +36,6 @@ do {
     let calcOfAnna = CalorieCalculator(name: "Anna", weight: 52.3)
     let calcOfElsa = CalorieCalculator(name: "Elsa", weight: 61.5)
     
-    /*
-     解説パート:
-     クロージャは生成タイミングでクロージャ内のインスタンスへの参照をキャプチャする
-     クロージャが解放されるまで参照が保持されるので、ここではインスタンスの参照カウンタが１のまま　= 循環参照している！！！
-     calcOfElsaはlazy var 宣言のクロージャにアクセスしていないため、循環参照が起きていない。
-     */
     print("- [Anna] swim : \(calcOfAnna.swim(1.0)) kcal")
     print("- [Anna] golf : \(calcOfAnna.golf(8.0)) kcal")
     print("- [Anna] walk : \(calcOfAnna.walk(8.0)) kcal")
